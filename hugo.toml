@@ -1,0 +1,8 @@
+baseURL = 'https://example.org/'
+languageCode = 'en-us'
+title = 'Hello, World!'
+theme = 'ananke'
+
+[params]
+custom_css = ["css/custom.css"]
+custom_js = ["js/custom.js"]
