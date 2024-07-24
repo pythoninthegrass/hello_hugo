@@ -4,7 +4,9 @@ Absolute minimum to scaffold a Hugo static site with a [custom theme](https://go
 
 ## Minimum Requirements
 
+* macOS or Linux
 * [Hugo](https://gohugo.io/getting-started/installing/)
+  * Linux: ignore package manager / snap packages, download latest [GitHub release](https://github.com/gohugoio/hugo/releases/)
 
 ## Quickstart
 
@@ -12,6 +14,10 @@ Absolute minimum to scaffold a Hugo static site with a [custom theme](https://go
 # clone repo
 git clone https://github.com/pythoninthegrass/hello_hugo.git
 cd hello_hugo
+
+# clone theme submodule
+[ $(uname -s) == "Darwin" ] && procs=$(sysctl -n hw.ncpu) || procs=$(nproc)
+git submodule update --init --recursive && git pull --recurse-submodules -j"${procs}"
 
 # add a new post
 hugo new posts/test-post.md
