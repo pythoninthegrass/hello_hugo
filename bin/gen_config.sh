@@ -10,6 +10,11 @@ fi
 
 ENV_FILE="${TLD}/.env"
 
+if [ ! -f "$ENV_FILE" ]; then
+	echo "No .env file found in the root of the project"
+	exit 1
+fi
+
 # https://stackoverflow.com/a/55715596
 while read -r line; do
     key="${line%%=*}"
