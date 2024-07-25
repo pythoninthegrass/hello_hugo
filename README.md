@@ -8,6 +8,10 @@ Absolute minimum to scaffold a Hugo static site with a [custom theme](https://go
 * [Hugo](https://gohugo.io/getting-started/installing/)
   * Linux: ignore package manager / snap packages, download latest [GitHub release](https://github.com/gohugoio/hugo/releases/)
 
+## Recommended Requirements
+
+* [devbox](https://www.jetify.com/devbox/docs/quickstart/)
+
 ## Quickstart
 
 ```bash
@@ -29,6 +33,27 @@ hugo server
 
 # stop hugo server
 # CTRL+C
+```
+
+## Customize
+
+Programmatically generate the [hugo.toml](hugo.toml) via `python` and `devbox`.
+
+Minimum values in `.env`:
+
+| Key        | Default Value   |
+| ---------- | --------------- |
+| `BASE_URL` | `example.com`   |
+| `LANGUAGE` | `en-us`         |
+| `TITLE`    | `Hello, World!` |
+| `THEME`    | `ananke`        |
+
+```bash
+devbox install
+cp .env.example .env
+# edit .env
+devbox run gen-config
+hugo
 ```
 
 ## TODO

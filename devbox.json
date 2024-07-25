@@ -1,0 +1,32 @@
+{
+  "$schema":  "https://raw.githubusercontent.com/jetify-com/devbox/0.12.0/.schema/devbox.schema.json",
+  "packages": {
+    "asdf": "latest",
+    "python": "3.11",
+    "python311Packages.pip": "latest",
+    "uv": "latest"
+  },
+  "env": {
+    "VENV_DIR": ".venv"
+  },
+  "shell": {
+    "init_hook": [
+      ". $VENV_DIR/bin/activate",
+      "uv pip install -r requirements.txt"
+    ],
+    "scripts": {
+      "install": [
+        "asdf plugin-add golang && asdf install golang latest",
+        "asdf plugin-add hugo && asdf install hugo latest",
+        "uv pip install -r requirements.txt"
+      ],
+      "pull": [
+        "git submodule update --init --recursive && git pull --recurse-submodules"
+      ],
+      "gen-config": "./bin/gen_config.sh",
+      "build": "hugo --minify --enableGitInfo",
+      "export-reqs": "uv pip freeze | uv pip compile - -o requirements.txt",
+      "venv": "uv venv ${VENV_DIR} --allow-existing"
+    }
+  }
+}
