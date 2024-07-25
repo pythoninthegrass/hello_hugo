@@ -15,17 +15,45 @@ if [ ! -f "$ENV_FILE" ]; then
 	exit 1
 fi
 
-# https://stackoverflow.com/a/55715596
-echo "Reading .env file"
-while read -r line; do
-    key="${line%%=*}"
-    val="${line#*=}"
-    export "$key"="$val"
-done < "$ENV_FILE"
+read_env() {
+	# https://stackoverflow.com/a/55715596
+	echo "Reading .env file"
+	while read -r line; do
+		key="${line%%=*}"
+		val="${line#*=}"
+		export "$key"="$val"
+	done < "$ENV_FILE"
+}
 
-TEMPLATE="${TLD}/hugo.tmpl"
-CONFIG="${TLD}/hugo.toml"
+gen_config() {
+	TEMPLATE="${TLD}/hugo.tmpl"
+	CONFIG="${TLD}/hugo.toml"
 
-jinja2 "$TEMPLATE" > "$CONFIG"
+	jinja2 "$TEMPLATE" > "$CONFIG"
 
-echo "Generated config file at ${CONFIG}"
+	echo "Generated config file at ${CONFIG}"
+}
+
+main() {
+	if [ $# -eq 0 ]; then
+		read_env
+		gen_config
+	else
+		while (( "$#" )); do
+			case "$1" in
+				-e|--env)
+					read_env
+					shift
+					;;
+				-c|--config)
+					gen_config
+					shift
+					;;
+				*)
+					echo "Unknown argument: $1"
+					exit 1
+					;;
+			esac
+		done
+	fi
+}
