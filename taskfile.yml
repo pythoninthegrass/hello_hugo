@@ -94,9 +94,9 @@ tasks:
         )
         case "{{.CLI_ARGS}}" in
           dry-run)
-            poetry run pyclean "${args[@]}" --dry-run
+            pyclean "${args[@]}" --dry-run
             ;;
           *)
-            poetry run pyclean "${args[@]}"
+            pyclean "${args[@]}"
             ;;
         esac
