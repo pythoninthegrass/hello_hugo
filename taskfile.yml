@@ -10,6 +10,7 @@ env:
     sh: git rev-parse --show-toplevel
   UNAME:
     sh: "uname -s"
+  VENV_DIR: ".venv"
 
 vars:
 
@@ -80,7 +81,7 @@ tasks:
   venv:
     desc: "Create virtual environment"
     cmds:
-      - uv venv ${VENV_DIR} --allow-existing
+      - uv venv {{.VENV_DIR}} --allow-existing
 
   pyclean:
     desc: "Remove .pyc and __pycache__"
