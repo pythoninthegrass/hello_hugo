@@ -2,6 +2,8 @@
 
 Absolute minimum to scaffold a Hugo static site with a [custom theme](https://gohugo.io/getting-started/quick-start/).
 
+(With some dev tooling added after the fact 😈)
+
 ## Minimum Requirements
 
 * macOS or Linux
@@ -38,6 +40,8 @@ hugo server
 
 ## Customize
 
+### Fill out `.env` file
+
 Programmatically generate the [hugo.toml](hugo.toml) via `python` and `devbox`.
 
 Minimum values in `.env`:
@@ -57,11 +61,18 @@ If deploying to `nginx`, add the following to `.env`:
 
 where `</var/www/html>` is the path to the `nginx` root directory.
 
+### Generate `hugo.toml`
+
 ```bash
 devbox install
 cp .env.example .env
 # edit .env
 devbox run gen-config
+```
+
+### Build
+
+```bash
 hugo
 ```
 
