@@ -75,8 +75,7 @@ tasks:
   export-reqs:
     desc: "Export requirements"
     cmds:
-      - |
-        uv pip freeze | uv pip compile - -o requirements.txt
+      - uv pip freeze | uv pip compile - -o requirements.txt
 
   venv:
     desc: "Create virtual environment"
