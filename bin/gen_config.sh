@@ -16,6 +16,7 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 
 # https://stackoverflow.com/a/55715596
+echo "Reading .env file"
 while read -r line; do
     key="${line%%=*}"
     val="${line#*=}"
@@ -26,3 +27,5 @@ TEMPLATE="${TLD}/hugo.tmpl"
 CONFIG="${TLD}/hugo.toml"
 
 jinja2 "$TEMPLATE" > "$CONFIG"
+
+echo "Generated config file at ${CONFIG}"
