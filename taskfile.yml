@@ -1,0 +1,103 @@
+version: "3.0"
+
+set: ['e', 'u', 'pipefail']
+shopt: ['globstar']
+
+dotenv: ['.env']
+
+env:
+  TLD:
+    sh: git rev-parse --show-toplevel
+  UNAME:
+    sh: "uname -s"
+
+vars:
+
+tasks:
+  default:
+    desc: "Default task"
+    cmds:
+      - task --list
+
+  install-devbox:
+    desc: "Install devbox"
+    cmds:
+      - |
+        if ! [[ $(command -v devbox 2>/dev/null) ]]; then
+          curl -fsSL https://get.jetify.com/devbox | bash
+        fi
+    run: once
+    silent: true
+
+  pull:
+    desc: "Update git submodules"
+    cmds:
+      - git submodule update --init --recursive
+      - git pull --recurse-submodules
+    ignore_error: true
+
+  install:
+    desc: "Install project dependencies"
+    cmds:
+      - |
+        asdf plugin-add golang
+        asdf plugin-add hugo
+        asdf install golang latest
+        asdf install hugo latest
+    ignore_error: true
+
+  gen-config:
+    desc: "Generate Hugo TOML configuration"
+    dir: "{{.TLD}}"
+    cmds:
+      - |
+        jinja2 hugo.tmpl > hugo.toml
+
+  build:
+    desc: "Build the site"
+    dir: "{{.TLD}}"
+    cmds:
+      - hugo --minify --enableGitInfo
+
+  deploy:
+    desc: "Copy static files to the nginx directory"
+    deps: ["build"]
+    dir: "{{.TLD}}"
+    cmds:
+      - |
+        rsync -arvhW \
+          --no-compress \
+          --progress \
+          --stats \
+          --delete \
+          public/ ${NGINX_DIR}
+
+  export-reqs:
+    desc: "Export requirements"
+    cmds:
+      - |
+        uv pip freeze | uv pip compile - -o requirements.txt
+
+  venv:
+    desc: "Create virtual environment"
+    cmds:
+      - uv venv ${VENV_DIR} --allow-existing
+
+  pyclean:
+    desc: "Remove .pyc and __pycache__"
+    cmds:
+      - |
+        args=(
+          .
+          --debris
+          --verbose
+          -i .devbox
+        )
+        case "{{.CLI_ARGS}}" in
+          dry-run)
+            poetry run pyclean "${args[@]}" --dry-run
+            ;;
+          *)
+            poetry run pyclean "${args[@]}"
+            ;;
+        esac

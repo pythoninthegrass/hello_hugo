@@ -10,6 +10,7 @@ Absolute minimum to scaffold a Hugo static site with a [custom theme](https://go
 
 ## Recommended Requirements
 
+* [taskfile](https://taskfile.dev/#/installation)
 * [devbox](https://www.jetify.com/devbox/docs/quickstart/)
 
 ## Quickstart
@@ -47,6 +48,14 @@ Minimum values in `.env`:
 | `LANGUAGE` | `en-us`         |
 | `TITLE`    | `Hello, World!` |
 | `THEME`    | `ananke`        |
+
+If deploying to `nginx`, add the following to `.env`:
+
+| Key          | Default Value     |
+| ------------ | ----------------- |
+| `NGINX_DIR`  | `</var/www/html>` |
+
+where `</var/www/html>` is the path to the `nginx` root directory.
 
 ```bash
 devbox install
