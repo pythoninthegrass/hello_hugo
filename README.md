@@ -9,6 +9,7 @@ Absolute minimum to scaffold a Hugo static site with a [custom theme](https://go
 * macOS or Linux
 * [Hugo](https://gohugo.io/getting-started/installing/)
   * Linux: ignore package manager / snap packages, download latest [GitHub release](https://github.com/gohugoio/hugo/releases/)
+  * Make sure to get the extended version (e.g., `hugo_extended_0.129.0_linux-amd64.tar.gz`)
 
 ## Recommended Requirements
 
