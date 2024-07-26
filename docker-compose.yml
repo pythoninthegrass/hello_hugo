@@ -1,0 +1,16 @@
+services:
+  nginx-static:
+    image: nginx-static
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nginx-static
+    hostname: nginx
+    # ports:
+    #   - "80:80"
+    network_mode: host    # default: bridge
+    volumes:
+      - ./public:/var/www/public
+    restart: no
+
+
