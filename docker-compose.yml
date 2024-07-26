@@ -9,8 +9,9 @@ services:
     # ports:
     #   - "80:80"
     network_mode: host    # default: bridge
+    environment:
+      - BASE_URL=${BASE_URL?}
     volumes:
       - ./public:/var/www/public
+      - ./nginx/certs:/etc/acme/certs/live/${BASE_URL}
     restart: no
-
-

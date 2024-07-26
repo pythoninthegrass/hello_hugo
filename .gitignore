@@ -1,5 +1,7 @@
 # ETC
-
+*.pem
+certs/*
+test.conf
 
 # INCLUDE
 !**/.example

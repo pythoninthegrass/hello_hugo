@@ -1,0 +1,9 @@
+.devbox/
+.git/
+.gitkeep
+.venv
+*.md
+certs/
+docker-compose*.yml
+Dockerfile*
+LICENSE
