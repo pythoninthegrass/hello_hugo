@@ -24,7 +24,8 @@ tasks:
         task docker:build
     dir: "{{.TLD}}"
     cmds:
-      - {{.BUILD}} build {{.DOCKERFILE}} {{.SERVICE}}
+      - |
+        {{.BUILD}} build {{.DOCKERFILE}} {{.SERVICE}}
 
   login:
     desc: "Login to the container registry"
