@@ -14,6 +14,11 @@ env:
 
 vars:
 
+includes:
+  docker:
+    taskfile: ./taskfiles/docker.yml
+    aliases: ["docker"]
+
 tasks:
   default:
     desc: "Default task"
