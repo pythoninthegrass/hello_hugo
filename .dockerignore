@@ -2,6 +2,7 @@
 .git/
 .gitkeep
 .venv
+*.example
 *.md
 certs/
 docker-compose*.yml

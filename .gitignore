@@ -1,10 +1,10 @@
 # ETC
 *.pem
-certs/*
-test.conf
+**/certs/*
+**/conf.d/*
 
 # INCLUDE
-!**/.example
+!**/*.example
 !**/.gitkeep
 
 # Generated files by hugo
