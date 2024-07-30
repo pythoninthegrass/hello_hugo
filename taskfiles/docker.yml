@@ -13,19 +13,21 @@ env:
   SERVICE: "nginx-static"
 
 tasks:
-  build:
-    desc: "Build the docker image"
-    summary: |
-      Build the docker image with the specified dockerfile.
-
-      The default dockerfile is `Dockerfile`.
-
-      USAGE
-        task docker:build
-    dir: "{{.TLD}}"
+  print:
     cmds:
       - |
-        {{.BUILD}} build {{.DOCKERFILE}} {{.SERVICE}}
+        echo {{.SERVICE}}
+        echo {{.TLD}}
+        echo {{.USER_WORKING_DIR}}
+
+  build:
+    desc: "Build the docker image"
+    dir: "{{.USER_WORKING_DIR}}"
+    cmds:
+      - |
+        docker build \
+          -f {{.DOCKERFILE}} \
+          -t {{.SERVICE}} .
 
   login:
     desc: "Login to the container registry"
@@ -47,11 +49,15 @@ tasks:
 
   up:
     desc: "Start the project with docker compose"
+    dir: "{{.USER_WORKING_DIR}}"
     cmds:
       - |
-        docker compose -f {{.COMPOSE_FILE}} up -d \
-        --build \
-        --remove-orphans
+        docker compose \
+          -f {{.COMPOSE_FILE}} \
+          up \
+          -d \
+          --build \
+          --remove-orphans
 
   exec:
     desc: "Shell into a running container"
@@ -60,20 +66,25 @@ tasks:
 
   logs:
     desc: "Follow the logs of a running container"
+    dir: "{{.USER_WORKING_DIR}}"
     cmds:
       - docker compose logs -tf {{.SERVICE}}
 
   stop:
     desc: "Stop the project with docker compose"
+    dir: "{{.USER_WORKING_DIR}}"
     cmds:
       - docker compose -f {{.COMPOSE_FILE}} stop
 
   down:
     desc: "Stop and remove containers, networks, and volumes with docker compose"
+    dir: "{{.USER_WORKING_DIR}}"
     cmds:
       - |
-        docker compose -f {{.COMPOSE_FILE}} down \
-        --volumes
+        docker compose \
+          -f {{.COMPOSE_FILE}} \
+          down \
+          --volumes
 
   prune:
     desc: "Prune docker"
