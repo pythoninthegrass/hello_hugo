@@ -2,6 +2,7 @@
 *.pem
 **/certs/*
 **/conf.d/*
+hugo.toml
 
 # INCLUDE
 !**/*.example
