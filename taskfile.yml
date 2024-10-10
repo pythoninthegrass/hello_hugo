@@ -6,10 +6,7 @@ shopt: ['globstar']
 dotenv: ['.env']
 
 env:
-  TLD:
-    sh: git rev-parse --show-toplevel
-  UNAME:
-    sh: "uname -s"
+  TLD: "{{.ROOT_DIR}}"
   VENV_DIR: ".venv"
 
 vars:
@@ -17,13 +14,21 @@ vars:
 includes:
   docker:
     taskfile: ./taskfiles/docker.yml
-    aliases: ["docker"]
 
 tasks:
   default:
     desc: "Default task"
     cmds:
       - task --list
+
+  print:
+    desc: "Print variables"
+    summary: "Useful for debugging .env files / environment variables"
+    cmds:
+      - |
+        echo {{.BASE_URL}}
+        echo {{.TLD}}
+        echo {{.VENV_DIR}}
 
   install-devbox:
     desc: "Install devbox"
@@ -54,10 +59,9 @@ tasks:
 
   gen-config:
     desc: "Generate Hugo TOML configuration"
-    dir: "{{.TLD}}"
+    dir: "{{.ROOT_DIR}}"
     cmds:
-      - |
-        jinja2 hugo.tmpl > hugo.toml
+      - jinja2 hugo.tmpl > hugo.toml
 
   build:
     desc: "Build the site"
