@@ -1,4 +1,5 @@
 # ETC
+.task/
 *.pem
 **/certs/*
 **/conf.d/*
