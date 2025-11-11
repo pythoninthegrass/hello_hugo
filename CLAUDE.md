@@ -65,11 +65,46 @@ mise exec -- hugo new posts/my-post.md
 ### Docker Deployment
 
 ```bash
-# Start Caddy container
+# Docker Compose (recommended)
 task docker:up                # Build and start in background
 task docker:logs              # Follow logs
 task docker:exec              # Shell into container
 task docker:down              # Stop and remove volumes
+
+# Docker Buildx (multi-platform builds)
+task docker:buildx            # Build for current platform and load to Docker
+task docker:buildx -- amd64   # Build for AMD64 and load to Docker
+task docker:buildx -- arm64   # Build for ARM64 and load to Docker
+task docker:buildx -- multi-platform  # Build both platforms (cached only)
+
+# Docker Run (direct container execution)
+# Basic HTTP (port 80 only)
+docker run -d \
+  --name hello-hugo \
+  -p 80:80 \
+  -v $(pwd)/public:/var/www/public:ro \
+  ghcr.io/pythoninthegrass/hello-hugo:latest
+
+# Full setup with HTTPS support
+docker run -d \
+  --name hello-hugo \
+  -p 80:80 \
+  -p 443:443 \
+  -e BASE_URL=example.com \
+  -v $(pwd)/public:/var/www/public:ro \
+  -v caddy_data:/data \
+  -v caddy_config:/config \
+  ghcr.io/pythoninthegrass/hello-hugo:latest
+
+# Host networking (same as docker-compose setup)
+docker run -d \
+  --name hello-hugo \
+  --network host \
+  -e BASE_URL=example.com \
+  -v $(pwd)/public:/var/www/public:ro \
+  -v caddy_data:/data \
+  -v caddy_config:/config \
+  ghcr.io/pythoninthegrass/hello-hugo:latest
 
 # Manual deployment to external Caddy
 task deploy                   # Requires CADDY_DIR in .env
@@ -135,3 +170,12 @@ Edit `caddy/Caddyfile` to enable HTTPS:
 - Comment out the `:80` HTTP block
 - Uncomment the `{$BASE_URL}` HTTPS block
 - Caddy will automatically obtain Let's Encrypt certificates
+
+### Docker Deployment Prerequisites
+
+Before running Docker containers:
+
+1. Build the site first: `task build` (generates `public/` directory)
+2. The `public/` directory must exist and contain the built site
+3. For custom images, use `task docker:buildx` to build locally
+4. For published images, pull from `ghcr.io/pythoninthegrass/hello-hugo:latest`
