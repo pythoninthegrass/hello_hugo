@@ -43,7 +43,7 @@ hugo server
 
 ### Fill out `.env` file
 
-Programmatically generate the [hugo.toml](hugo.toml) via `python` and `devbox`.
+Programmatically generate the [hugo.toml](hugo.toml) via `task gen-config`.
 
 Minimum values in `.env`:
 
@@ -69,37 +69,31 @@ devbox run gen-config
 hugo
 ```
 
-## Nginx + Docker
+## Caddy + Docker
 
-If deploying to `nginx`, add the following to `.env`:
+If deploying to `caddy`, add the following to `.env`:
 
 | Key         | Default Value     |
 | ----------- | ----------------- |
-| `NGINX_DIR` | `</var/www/html>` |
+| `CADDY_DIR` | `</var/www/html>` |
 
-where `</var/www/html>` is the path to the `nginx` root directory.
+where `</var/www/html>` is the path to the `caddy` root directory.
 
 ### HTTP (Port 80)
 
-Comment out the line in [docker-compose.yml](docker-compose.yml) that mounts the `nginx` [certs](nginx/certs) directory.
-
-```yaml
-volumes:
-  - ./public:/var/www/public
-  # - ./nginx/certs:/etc/acme/certs/live/${BASE_URL}
-```
+By default, the [Caddyfile](caddy/Caddyfile) is configured for HTTP on port 80 for local development.
 
 ### HTTPS (Port 443)
 
-Generate certificates with either [acme.sh](https://github.com/acmesh-official/acme.sh) or [certbot](https://certbot.eff.org/).
+To enable HTTPS with automatic Let's Encrypt certificates:
 
-Copy the following files to the `nginx` [certs](nginx/certs) directory:
+1. Edit [caddy/Caddyfile](caddy/Caddyfile)
+2. Comment out the `:80` HTTP block
+3. Uncomment the `{$BASE_URL}` HTTPS block
 
-* `fullchain.pem`
-* `privkey.pem`
-* `ssl-dhparams.pem`
+Caddy will automatically obtain and renew SSL certificates from Let's Encrypt. No manual certificate management required.
 
-If developing locally, add the following to `/etc/hosts`:
+If developing locally with HTTPS, add the following to `/etc/hosts`:
 
 ```bash
 127.0.0.1 example.com
@@ -110,9 +104,9 @@ Where `example.com` is the value of `BASE_URL` in `.env`.
 
 Remember to revert / comment out the `127.0.0.1 example.com` line and reinstate `127.0.0.1 localhost` when done.
 
-### Both HTTP and HTTPS
+### Starting Caddy
 
-Build and start the `nginx` container:
+Build and start the `caddy` container:
 
 ```bash
 docker compose up -d --build

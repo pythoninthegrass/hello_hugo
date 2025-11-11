@@ -1,17 +1,23 @@
 services:
-  nginx-static:
-    image: nginx-static
+  caddy-static:
+    image: caddy-static
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: nginx-static
-    hostname: nginx
+    container_name: caddy-static
+    hostname: caddy
     # ports:
     #   - "80:80"
+    #   - "443:443"
     network_mode: host    # default: bridge
     environment:
       - BASE_URL=${BASE_URL?}
     volumes:
       - ./public:/var/www/public
-      - ./nginx/certs:/etc/acme/certs/live/${BASE_URL}
+      - caddy_data:/data
+      - caddy_config:/config
     restart: no
+
+volumes:
+  caddy_data:
+  caddy_config:

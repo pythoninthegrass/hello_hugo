@@ -10,7 +10,7 @@ env:
   COMPOSE_FILE: "{{.TLD}}/docker-compose.yml"
   DOCKERFILE: "{{.TLD}}/Dockerfile"
   PLATFORM: "linux/amd64"
-  SERVICE: "nginx-static"
+  SERVICE: "caddy-static"
 
 tasks:
   print:
