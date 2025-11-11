@@ -6,8 +6,6 @@ shopt: ['globstar']
 dotenv: ['.env']
 
 env:
-  TLD: "{{.ROOT_DIR}}"
-  VENV_DIR: ".venv"
 
 vars:
 
@@ -21,13 +19,13 @@ tasks:
     cmds:
       - task --list
 
-  print:
+  printenv:
     desc: "Print variables"
     summary: "Useful for debugging .env files / environment variables"
     cmds:
       - |
         echo {{.BASE_URL}}
-        echo {{.TLD}}
+        echo {{.ROOT_DIR}}
         echo {{.VENV_DIR}}
 
   install-devbox:
@@ -50,29 +48,35 @@ tasks:
   install:
     desc: "Install project dependencies"
     cmds:
-      - |
-        asdf plugin-add golang
-        asdf plugin-add hugo
-        asdf install golang latest
-        asdf install hugo latest
+      - mise install
     ignore_error: true
 
   gen-config:
     desc: "Generate Hugo TOML configuration"
     dir: "{{.ROOT_DIR}}"
     cmds:
-      - jinja2 hugo.tmpl > hugo.toml
+      - |
+        cat > hugo.toml << 'EOF'
+        baseURL = 'https://{{.BASE_URL}}/'
+        languageCode = '{{.LANGUAGE}}'
+        title = '{{.TITLE}}'
+        theme = '{{.THEME}}'
+
+        [params]
+        custom_css = ["css/custom.css"]
+        custom_js = ["js/custom.js"]
+        EOF
 
   build:
     desc: "Build the site"
-    dir: "{{.TLD}}"
+    dir: "{{.ROOT_DIR}}"
     cmds:
-      - hugo --minify --enableGitInfo
+      - mise exec -- hugo --minify --enableGitInfo
 
   deploy:
-    desc: "Copy static files to the nginx directory"
+    desc: "Copy static files to the caddy directory"
     deps: ["build"]
-    dir: "{{.TLD}}"
+    dir: "{{.ROOT_DIR}}"
     cmds:
       - |
         sudo rsync -arvhW \
@@ -80,33 +84,4 @@ tasks:
           --progress \
           --stats \
           --delete \
-          public/ ${NGINX_DIR}
-
-  export-reqs:
-    desc: "Export requirements"
-    cmds:
-      - uv pip freeze | uv pip compile - -o requirements.txt
-
-  venv:
-    desc: "Create virtual environment"
-    cmds:
-      - uv venv {{.VENV_DIR}} --allow-existing
-
-  pyclean:
-    desc: "Remove .pyc and __pycache__"
-    cmds:
-      - |
-        args=(
-          .
-          --debris
-          --verbose
-          -i .devbox
-        )
-        case "{{.CLI_ARGS}}" in
-          dry-run)
-            pyclean "${args[@]}" --dry-run
-            ;;
-          *)
-            pyclean "${args[@]}"
-            ;;
-        esac
+          public/ ${CADDY_DIR}

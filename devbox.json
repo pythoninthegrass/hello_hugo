@@ -1,27 +1,15 @@
 {
   "packages": {
-    "asdf":                  "latest",
-    "go-task":               "latest",
-    "python":                "3.11",
-    "python311Packages.pip": "latest",
-    "uv":                    "latest"
-  },
-  "env": {
-    "VENV_DIR": ".venv"
+    "asdf":    "latest",
+    "go-task": "latest"
   },
   "shell": {
-    "init_hook": [
-      ". $VENV_DIR/bin/activate",
-      "uv pip install -r requirements.txt"
-    ],
     "scripts": {
-      "install":     "task install",
-      "pull":        "task pull",
-      "gen-config":  "task gen-config",
-      "build":       "task build",
-      "deploy":      "task deploy",
-      "export-reqs": "task export-reqs",
-      "venv":        "task venv"
+      "install":    "task install",
+      "pull":       "task pull",
+      "gen-config": "task gen-config",
+      "build":      "task build",
+      "deploy":     "task deploy"
     }
   },
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.12.0/.schema/devbox.schema.json"
