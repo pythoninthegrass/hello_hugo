@@ -4,30 +4,92 @@ set: ['e', 'u', 'pipefail']
 shopt: ['globstar']
 
 env:
-  APP:
-    sh: echo "${APP_NAME:-hello-hugo}"
-  BUILD: "{{.TLD}}/bin/build.sh"
-  COMPOSE_FILE: "{{.TLD}}/docker-compose.yml"
-  DOCKERFILE: "{{.TLD}}/Dockerfile"
-  PLATFORM: "linux/amd64"
-  SERVICE: "caddy-static"
+  COMPOSE_FILE: '{{.COMPOSE_FILE | default (printf "%s/docker-compose.yml" .ROOT_DIR)}}'
+  COMPOSE_REMOVE_ORPHANS: '{{.COMPOSE_REMOVE_ORPHANS | default "true"}}'
+  DOCKERFILE: '{{.DOCKERFILE | default (printf "%s/Dockerfile" .ROOT_DIR)}}'
+  ARCH: '{{.ARCH | default "linux/amd64"}}'
+  REGISTRY: '{{.REGISTRY | default "ghcr.io"}}'
+  USER_NAME: '{{.USER_NAME | default "pythoninthegrass"}}'
+  SERVICE: '{{.SERVICE | default "hello-hugo"}}'
+  VERSION: '{{.VERSION | default "latest"}}'
 
 tasks:
   print:
     cmds:
       - |
         echo {{.SERVICE}}
-        echo {{.TLD}}
+        echo {{.ROOT_DIR}}
         echo {{.USER_WORKING_DIR}}
 
   build:
     desc: "Build the docker image"
-    dir: "{{.USER_WORKING_DIR}}"
+    summary: |
+      Build the docker image with the specified dockerfile.
+
+      The default dockerfile is `Dockerfile`.
+
+      USAGE
+        task docker:build
     cmds:
       - |
         docker build \
           -f {{.DOCKERFILE}} \
-          -t {{.SERVICE}} .
+          -t {{.SERVICE}} \
+          --platform {{.ARCH}} \
+          .
+
+  buildx:
+    desc: "Build using docker buildx bake"
+    summary: |
+      Build using docker buildx bake with the specified target.
+
+      AVAILABLE TARGETS
+        - build (default): Builds the main image and loads to Docker
+        - amd64: Builds specifically for AMD64 platform and loads to Docker
+        - arm64: Builds specifically for ARM64 platform and loads to Docker
+        - multi-platform: Builds for both AMD64 and ARM64 platforms (cached only, not loaded)
+
+      USAGE
+        task docker:buildx
+        task docker:buildx -- amd64
+        task docker:buildx -- arm64
+        task docker:buildx -- multi-platform
+
+      NOTES
+        - Single-platform builds (build, amd64, arm64) are loaded into local Docker
+        - Multi-platform builds are cached but not loaded (use docker:push to publish)
+    deps:
+      - validate
+      - create-builder
+    cmds:
+      - |
+        if [ -z "{{.CLI_ARGS}}" ]; then
+          TARGET="build"
+        else
+          case "{{.CLI_ARGS}}" in
+            build|amd64|arm64|multi-platform)
+              TARGET="{{.CLI_ARGS}}"
+              ;;
+            *)
+              echo "Error: Invalid target '{{.CLI_ARGS}}'"
+              echo "Valid targets are: build, amd64, arm64, multi-platform"
+              exit 1
+              ;;
+          esac
+        fi
+
+        # Multi-platform builds cannot be loaded into Docker
+        # They must be pushed to a registry or kept in cache
+        if [ "$TARGET" = "multi-platform" ]; then
+          docker buildx bake \
+            --file docker-bake.hcl \
+            $TARGET
+        else
+          docker buildx bake \
+            --file docker-bake.hcl \
+            $TARGET \
+            --load
+        fi
 
   login:
     desc: "Login to the container registry"
@@ -38,6 +100,9 @@ tasks:
           --password-stdin {{.REGISTRY_URL}}
     run: once
     silent: true
+    status:
+      - |
+        jq -e '.auths | keys[] | select(contains("{{.REGISTRY_URL}}"))' ~/.docker/config.json
 
   push:
     desc: "Push the docker image to the registry"
@@ -49,15 +114,11 @@ tasks:
 
   up:
     desc: "Start the project with docker compose"
-    dir: "{{.USER_WORKING_DIR}}"
     cmds:
       - |
-        docker compose \
-          -f {{.COMPOSE_FILE}} \
-          up \
-          -d \
-          --build \
-          --remove-orphans
+        docker compose -f {{.COMPOSE_FILE}} up -d \
+        --build \
+        --remove-orphans
 
   exec:
     desc: "Shell into a running container"
@@ -66,28 +127,53 @@ tasks:
 
   logs:
     desc: "Follow the logs of a running container"
-    dir: "{{.USER_WORKING_DIR}}"
     cmds:
       - docker compose logs -tf {{.SERVICE}}
 
   stop:
     desc: "Stop the project with docker compose"
-    dir: "{{.USER_WORKING_DIR}}"
     cmds:
       - docker compose -f {{.COMPOSE_FILE}} stop
 
   down:
     desc: "Stop and remove containers, networks, and volumes with docker compose"
-    dir: "{{.USER_WORKING_DIR}}"
     cmds:
       - |
-        docker compose \
-          -f {{.COMPOSE_FILE}} \
-          down \
-          --volumes
+        docker compose -f {{.COMPOSE_FILE}} down \
+        --volumes
 
   prune:
     desc: "Prune docker"
     cmds:
       - docker system prune --all --force
       - docker builder prune --all --force
+
+  create-builder:
+    desc: "Create a local docker buildx builder"
+    cmds:
+      - |
+        docker buildx create \
+          --name multi-platform \
+          --node multi-platform \
+          --platform linux/arm64/v8,linux/amd64 \
+          --driver=docker-container \
+          --use \
+          --bootstrap
+    status:
+      - docker buildx inspect multi-platform > /dev/null 2>&1
+
+  validate:
+    desc: Validate the docker-bake.hcl file
+    vars:
+      BAKE_OUTPUT:
+        sh: docker buildx bake --file docker-bake.hcl --print 2>&1 || true
+      VALIDATION_ERROR:
+        sh: echo "{{.BAKE_OUTPUT}}" | grep -q "ERROR:" && echo "true" || echo "false"
+    preconditions:
+      - sh: "test {{.VALIDATION_ERROR}} = false"
+        msg: |
+          Docker bake file is invalid. Error details:
+          {{.BAKE_OUTPUT}}
+    cmds:
+      - cmd: echo "Docker bake file is valid"
+        silent: true

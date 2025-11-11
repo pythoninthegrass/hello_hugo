@@ -6,6 +6,11 @@ shopt: ['globstar']
 dotenv: ['.env']
 
 env:
+  BASE_URL: '{{.BASE_URL | default "example.com"}}'
+  LANGUAGE: '{{.LANGUAGE | default "en-us"}}'
+  TITLE: '{{.TITLE | default "Hello, World!"}}'
+  THEME: '{{.THEME | default "ananke"}}'
+  PORT: '{{.PORT | default "1313"}}'
 
 vars:
 
@@ -25,8 +30,11 @@ tasks:
     cmds:
       - |
         echo {{.BASE_URL}}
-        echo {{.ROOT_DIR}}
-        echo {{.VENV_DIR}}
+        echo {{.LANGUAGE}}
+        echo {{.TITLE}}
+        echo {{.THEME}}
+        echo {{.PORT}}
+    silent: true
 
   install-devbox:
     desc: "Install devbox"
@@ -66,12 +74,26 @@ tasks:
         custom_css = ["css/custom.css"]
         custom_js = ["js/custom.js"]
         EOF
+    preconditions:
+      - test -f "{{.ROOT_DIR}}/hugo.toml"
 
   build:
     desc: "Build the site"
     dir: "{{.ROOT_DIR}}"
     cmds:
       - mise exec -- hugo --minify --enableGitInfo
+    sources:
+      - "**/*.md"
+      - "**/*.css"
+      - "**/*.js"
+    generates:
+      - "{{.ROOT_DIR}}/public/**"
+
+  run:
+    desc: "Run the development server"
+    dir: "{{.ROOT_DIR}}"
+    cmds:
+      - mise exec -- hugo server --bind="0.0.0.0:{{.PORT}}"
 
   deploy:
     desc: "Copy static files to the caddy directory"
